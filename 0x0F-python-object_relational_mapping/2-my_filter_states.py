@@ -1,31 +1,19 @@
 #!/usr/bin/python3
-# Lists all states from a database
+"""Lists all states starting with N"""
+
+import MySQLdb
+from sys import argv
 
 if __name__ == "__main__":
-    import MySQLdb
-    from sys import argv, exit
-
-    if len(argv) != 5:
-        print("Usage: ./2.py <username> <password> <database> <search>")
-        exit(1)
-
-    usr = argv[1]
-    pwd = argv[2]
-    dbe = argv[3]
-    ser = argv[4]
-
-    try:
-        database = MySQLdb.Connect(user=usr, passwd=pwd, db=dbe, port=3306)
-    except Exception as err:
-        print(err)
-        exit(1)
-    cursor = database.cursor()
-    cursor.execute("""
-        SELECT * FROM states WHERE states.name LIKE '%{:s}%'
-        ORDER BY states.id ASC
-    """.format(ser))
-    for row in cursor.fetchall():
-        if row[1][0] == 'N':
-            print(row)
-    cursor.close()
-    database.close()
+    conn = MySQLdb.connect(host="localhost", port=3306, charset="utf8",
+                           user=argv[1], passwd=argv[2], db=argv[3])
+    cur = conn.cursor()
+    q = """
+SELECT * FROM states WHERE name LIKE BINARY '{}' ORDER BY states.id ASC"""
+    q = q.format(argv[4])
+    cur.execute(q)
+    query_rows = cur.fetchall()
+    for row in query_rows:
+        print(row)
+    cur.close()
+    conn.close()
